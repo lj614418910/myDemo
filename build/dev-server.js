@@ -14,12 +14,31 @@ var port = process.env.PORT || config.dev.port
 // https://github.com/chimurai/http-proxy-middleware
 var proxyTable = config.dev.proxyTable
 
-var app = express()
+var app = express();
+var Data = require('../data.json');
+var apiRoutes = express.Router();
+var loadedList = [];
+var fun = {
+  add: (loadedList) => {
+    let addlist = [];
+    let len = loadedList.length;
+    for(let i = 0; i < 5; i++){
+      addlist.push(Data.student[len + i]);
+      loadedList.push(Data.student[len + i]);
+    };
+    return addlist;
+  }
+}
+apiRoutes.get('/list', function (req,res){
+  let list = fun.add(loadedList);
+  res.json({
+    errno: 0,
+    data: list
+  });
+});
+app.use('/api', apiRoutes);
 
 
-//健伊，你在这个位置写
-//...
-//健伊，你在这个位置写
 
 
 
