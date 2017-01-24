@@ -4,18 +4,23 @@
       <li class="list-wrapper" v-for = "(list, i) in lists">
         <v-List :list="list"></v-List>
       </li>
+      <li>
+        <div class="load">
+          {{loading}}
+        </div>
+      </li>
     </ul>
     <loading-icon></loading-icon>
   </div>
-
 </template>
 
 <script>
 import BScroll from 'better-scroll';
 import List from 'components/list/List';
 import loadingIcon from 'components/loadingIcon/loadingIcon';
-
 const ERR_OK = 0;
+let _index1 = 1;
+let _index2 = 1;
 export default {
   components: {
     'v-List' : List,
@@ -23,101 +28,26 @@ export default {
   },
   data(){
     return {
-      lists: [
-        {
-          "id" : 0,
-          "name" : "张一",
-          "sex" : "男",
-          "age" : 21,
-          "class" : "三年级2班"
-        },
-        {
-          "id" : 1,
-          "name" : "李思",
-          "sex" : "女",
-          "age" : 20,
-          "class" : "一年级3班"
-        },
-        {
-          "id" : 2,
-          "name" : "刘五一",
-          "sex" : "男",
-          "age" : 29,
-          "class" : "二年级4班"
-        },
-        {
-          "id" : 3,
-          "name" : "安静",
-          "sex" : "女",
-          "age" : 11,
-          "class" : "一年级4班"
-        },
-        {
-          "id" : 4,
-          "name" : "张二",
-          "sex" : "男",
-          "age" : 21,
-          "class" : "五年级2班"
-        },
-        {
-          "id" : 5,
-          "name" : "吴丽",
-          "sex" : "女",
-          "age" : 22,
-          "class" : "六年级2班"
-        },
-        {
-          "id" : 6,
-          "name" : "拉克",
-          "sex" : "男",
-          "age" : 19,
-          "class" : "二年级2班"
-        },
-        {
-          "id" : 7,
-          "name" : "婉容",
-          "sex" : "女",
-          "age" : 21,
-          "class" : "一年级1班"
-        },
-        {
-          "id" : 8,
-          "name" : "李丽",
-          "sex" : "女",
-          "age" : 22,
-          "class" : "五年级2班"
-        },
-        {
-          "id" : 9,
-          "name" : "奥斯丁",
-          "sex" : "男",
-          "age" : 18,
-          "class" : "四年级2班"
-        },
-        {
-          "id" : 10,
-          "name" : "吕一",
-          "sex" : "男",
-          "age" : 22,
-          "class" : "四年级4班"
-        }
-      ]
+      lists: [],
+      loading: "正在加载中..."
     }
   },
   methods: {
-    load(){
+    _load(){
       this.$http.get('/api/list').then((response) => {
         response = response.body;
         if (response.errno === ERR_OK) {
           response.data.forEach((item) =>{
             if(item != null){
               this.lists.push(item);
+            }else{
+              this.loading = "没有更多了"
             }
           });
         };
       });
     },
-    updata(){
+    _updata(){
       this.$http.get('/api/list').then((response) => {
         response = response.body;
         if (response.errno === ERR_OK) {
@@ -130,31 +60,36 @@ export default {
       });
     },
     _initScroll() {
-      let _updata = this.updata;
-      let _load = this.load;
+      let _updata = this._updata;
+      let _load = this._load;
       let scroll = new BScroll(this.$el, {
-        probeType: 3
+        probeType: 1,
+        momentum: false
       });
       scroll.on('touchend', function (pos) {
-        if (pos.y > 50) {
+        scroll.refresh()
+        if (_index1 && pos.y > 50) {
+          _index1 = 0;
           setTimeout(function () {
             _updata();
-            console.log(1);
-            scroll.refresh()
+            _index1 = 1;
           }, 500)
         };
-        if (scroll.maxScrollY - pos.y > 60){
+        console.log(scroll.wrapperHeight - scroll.y - scroll.scrollerHeight)
+        if (_index2 && scroll.wrapperHeight - scroll.y - scroll.scrollerHeight == 0){
+          _index2 = 0;
           setTimeout(function () {
             _load();
-             console.log(2);
-            scroll.refresh()
-          }, 1000)
+            _index2 = 1;
+          }, 500)
         }
       })
     }
   },
   created(){
     this.$nextTick(() => {
+      this._load();
+      this._load();
       this._initScroll();
     });
   }
@@ -177,6 +112,10 @@ export default {
     z-index: 1;
     .list-wrapper{
       padding: 0px 10px;
+    }
+    .load{
+      padding: 10px;
+      text-align: center;
     }
   }
 }

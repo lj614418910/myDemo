@@ -1,5 +1,5 @@
 <template lang="html">
-  <div class="list border-1px">
+  <div v-show="list" class="list border-1px">
     <div class="top">
       <div class="name" :class="{'girl':list.sex == '女'}">
         {{list.name}}
